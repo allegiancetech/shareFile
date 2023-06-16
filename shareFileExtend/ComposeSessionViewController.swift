@@ -70,7 +70,7 @@ struct MountingPoints : Codable {
 
 func uploadFile(filePath: URL) -> Void {
     
-    let connect = URL(string: "https://files01.allegiance-it.com/app?operation=ws&u=support@allegiance-it.com&p=MakeItS0&s=3&rt=json")!
+    let connect = URL(string: "https://files01.allegiance-it.com/app?operation=ws&u=support@allegiance-it.com&p=MakeItS0&s=3")!
     var login = URLRequest(url: connect)
     
     let task = URLSession.shared.dataTask(with: login) { data, response, error in
@@ -78,13 +78,29 @@ func uploadFile(filePath: URL) -> Void {
             print ("error: \(error)")
             return
         }
-        guard let response = response as? HTTPURLResponse,
-            response.statusCode == 3 else {
-            print ("server error")
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+            (200...299).contains(httpResponse.statusCode) else {
+            print("server error")
             return
         }
-        if let mimeType = response.mimeType,
-            mimeType == "application/json",
+        
+        let data = data!
+        let string = String(data: data, encoding: .utf8)!
+        if string.contains("<response code=\"3\">") {
+            print("success")
+        }
+        
+        /*
+        if let mimeType = httpResponse.mimeType, mimeType == "text/html",
+            let data = data,
+            let string = String(data: data, encoding: .utf8) {
+                print(string, "\n", data)
+        }
+        */
+        
+        /*
+        if let mimeType = httpResponse.mimeType, mimeType == "application/json",
             let data = data,
             let dataString = String(data: data, encoding: .utf8) {
             print ("got data: \(dataString)")
@@ -92,6 +108,7 @@ func uploadFile(filePath: URL) -> Void {
             let mounts = try! JSONDecoder().decode(MountingPoints.self, from: data)
             print (mounts.content)
         }
+         */
     }
     task.resume()
     
